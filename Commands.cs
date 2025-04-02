@@ -26,6 +26,7 @@ public static class Commands
         {"/tpenemy", new CommandInfo(TPEnemy, "[name of enemy] [number of enemies] Teleports enemies directly in front of you")},
         {"/listenemy", new CommandInfo(ListEnemy, "Lists all enemies currently spawned and despawned")},
         {"/godmode", new CommandInfo(Godmode, "[true/false] Sets the player to be invincible or not invincible")},
+        {"/sethealth", new CommandInfo(SetHealth, "[health] [max health] Sets the health and max health of the player")},
         {"/help", new CommandInfo(Help, "Prints this information")}
     };
 
@@ -72,6 +73,24 @@ public static class Commands
         }
 
         return new string([.. message]);
+    }
+
+    public static string SetHealth(string[] args)
+    {
+        if(args.Length < 1)
+            return ErrTooFewArgs;
+
+        int health = Convert.ToInt32(args[0]);
+        int maxHealth;
+        PhotonView photonView = (PhotonView)AccessTools.Field(typeof(PlayerHealth), "photonView").GetValue(PlayerAvatar.instance.playerHealth);
+
+        if(args.Length > 1)
+            maxHealth = Convert.ToInt32(args[1]);
+        else
+            maxHealth = (int)AccessTools.Field(typeof(PlayerHealth), "maxHealth").GetValue(PlayerAvatar.instance.playerHealth);
+
+        photonView.RPC("UpdateHealthRPC", RpcTarget.All, health, maxHealth, true);
+        return $"Health successfully updated to {health} / {maxHealth}";
     }
 
     public static string Spawn(string [] args)

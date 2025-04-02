@@ -4,7 +4,7 @@ REPO_PATH = D:\SteamLibrary\steamapps\common\REPO
 NAME = CommandLine
 DLL = bin\Debug\netstandard2.1\$(NAME).dll
 
-All: Compile Debug Push
+All: Compile Push Debug
 
 Compile: $(DLL) 
 
