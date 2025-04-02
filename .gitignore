@@ -1,0 +1,4 @@
+bin/*
+Libraries/*
+obj/*
+*.sln
