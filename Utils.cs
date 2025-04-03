@@ -1,9 +1,18 @@
 using UnityEngine;
+using HarmonyLib;
+using System.Reflection;
 using System.Collections.Generic;
 
 namespace Ardot.REPO.CommandLine;
 public static class Utils
 {
+    public static FieldInfo PlayerNameFieldInfo;
+
+    public static void InitUtils()
+    {
+        PlayerNameFieldInfo = AccessTools.Field(typeof(PlayerAvatar), "playerName");
+    }
+
     public static Dictionary<string, GameObject> GetEnemies()
     {
         List<EnemySetup> enemyList = new ();
@@ -33,5 +42,25 @@ public static class Utils
         }
 
         return enemyObjects;
+    }
+
+    public static string PlayerName(PlayerAvatar player)
+    {
+        return (string)PlayerNameFieldInfo.GetValue(player);
+    }
+
+    public static PlayerAvatar GetPlayer(string name)
+    {
+        name = name.ToLower();
+
+        for(int x = 0; x < GameDirector.instance.PlayerList.Count; x++)
+        {
+            PlayerAvatar playerAvatar = GameDirector.instance.PlayerList[x];
+
+            if(name == PlayerName(playerAvatar).ToLower())
+                return playerAvatar;
+        }
+
+        return null;
     }
 }

@@ -26,11 +26,13 @@ public static class Commands
         {"/tpenemy", new CommandInfo(TPEnemy, "[name of enemy] [number of enemies] Teleports enemies directly in front of you")},
         {"/listenemy", new CommandInfo(ListEnemy, "Lists all enemies currently spawned and despawned")},
         {"/godmode", new CommandInfo(Godmode, "[true/false] Sets the player to be invincible or not invincible")},
-        {"/sethealth", new CommandInfo(SetHealth, "[health] [max health] Sets the health and max health of the player")},
-        {"/help", new CommandInfo(Help, "Prints this information")}
+        {"/sethealth", new CommandInfo(SetHealth, "[player] [health] [max health] Sets the health and max health of the player")},
+        {"/help", new CommandInfo(Help, "Prints this information")},
+        {"/listplayers", new CommandInfo(ListPlayers, "Lists the names of all players")}
     };
 
     public const string ErrTooFewArgs = "Error: Too few arguments";
+
 
     public static string Help(string[] args)
     {
@@ -75,22 +77,37 @@ public static class Commands
         return new string([.. message]);
     }
 
+    public static string ListPlayers(string[] args)
+    {
+        List<char> message = ['\n'];
+
+        for(int x = 0; x < GameDirector.instance.PlayerList.Count; x++)
+            message.AddRange($"{Utils.PlayerName(GameDirector.instance.PlayerList[x])}");
+
+        return new string([.. message]);
+    }
+
     public static string SetHealth(string[] args)
     {
-        if(args.Length < 1)
+        if(args.Length < 2)
             return ErrTooFewArgs;
 
-        int health = Convert.ToInt32(args[0]);
-        int maxHealth;
-        PhotonView photonView = (PhotonView)AccessTools.Field(typeof(PlayerHealth), "photonView").GetValue(PlayerAvatar.instance.playerHealth);
+        PlayerAvatar player = Utils.GetPlayer(args[0]);
 
-        if(args.Length > 1)
-            maxHealth = Convert.ToInt32(args[1]);
+        if(player == null)
+            return $"Player {args[0]} not found";
+
+        int.TryParse(args[1], out int health);
+        int maxHealth = 100;
+        PhotonView photonView = (PhotonView)AccessTools.Field(typeof(PlayerHealth), "photonView").GetValue(player.playerHealth);
+
+        if(args.Length > 2)
+            int.TryParse(args[2], out maxHealth);
         else
-            maxHealth = (int)AccessTools.Field(typeof(PlayerHealth), "maxHealth").GetValue(PlayerAvatar.instance.playerHealth);
+            maxHealth = (int)AccessTools.Field(typeof(PlayerHealth), "maxHealth").GetValue(player.playerHealth);
 
         photonView.RPC("UpdateHealthRPC", RpcTarget.All, health, maxHealth, true);
-        return $"Health successfully updated to {health} / {maxHealth}";
+        return $"Successfully updated {args[0]}'s health to {health} / {maxHealth}";
     }
 
     public static string Spawn(string [] args)
@@ -105,7 +122,7 @@ public static class Commands
         int count = 1;
 
         if(args.Length > 1)
-            count = Convert.ToInt32(args[1]);
+            int.TryParse(args[1], out count);
         
         Dictionary<string, GameObject> enemies = Utils.GetEnemies();
         if(!enemies.TryGetValue(enemyName, out GameObject enemy))
@@ -144,7 +161,7 @@ public static class Commands
         int count = 1;
 
         if(args.Length > 1)
-            count = Convert.ToInt32(args[1]);
+            int.TryParse(args[1], out count);
 
         FieldInfo enemyFI = AccessTools.Field(typeof(EnemyParent), "Enemy");
         List<EnemyParent> enemiesSpawned = EnemyDirector.instance.enemiesSpawned;
@@ -190,15 +207,23 @@ public static class Commands
 
     public static string Godmode(string[] args)
     {
-        FieldInfo invincibleTimerFI = AccessTools.Field(typeof(PlayerHealth), "invincibleTimer");
-        bool godmode;
-        
-        if(args.Length > 0)
-            godmode = Convert.ToBoolean(args[0]);
-        else
-            godmode = (float)invincibleTimerFI.GetValue(PlayerAvatar.instance.playerHealth) != float.PositiveInfinity; 
+        if(args.Length < 1)
+            return ErrTooFewArgs;
 
-        invincibleTimerFI.SetValue(PlayerAvatar.instance.playerHealth, godmode ? float.PositiveInfinity : 0f); 
+        PlayerAvatar player = Utils.GetPlayer(args[0]);     
+
+        if(player == null)
+            return $"Player {args[0]} not found"; 
+
+        FieldInfo godModeFI = AccessTools.Field(typeof(PlayerHealth), "godMode");
+        bool godmode = false;
+        
+        if(args.Length > 1)
+            bool.TryParse(args[0], out godmode);
+        else
+            godmode = !(bool)godModeFI.GetValue(player.playerHealth); 
+
+        godModeFI.SetValue(player.playerHealth, godmode); 
 
         return godmode ? "Godmode activated" : "Godmode deactivated";
     }

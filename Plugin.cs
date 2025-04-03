@@ -18,5 +18,7 @@ public class Plugin : BaseUnityPlugin
         Logger = base.Logger;
         Harmony harmony = new (PluginGUID);
         harmony.Patch(AccessTools.Method(typeof(ChatManager), "MessageSend"), prefix: new HarmonyMethod(typeof(Patches), "MessageSendPrefix"));
+
+        Utils.InitUtils();
     }
 }
