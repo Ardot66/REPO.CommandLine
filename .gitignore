@@ -2,3 +2,4 @@ bin/*
 Libraries/*
 obj/*
 *.sln
+LocalInfo.txt
