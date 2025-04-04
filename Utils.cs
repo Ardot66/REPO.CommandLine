@@ -46,7 +46,7 @@ public static class Utils
 
     public static string PlayerName(PlayerAvatar player)
     {
-        return (string)PlayerNameFieldInfo.GetValue(player);
+        return ((string)PlayerNameFieldInfo.GetValue(player)).Replace(' ','-');
     }
 
     public static PlayerAvatar GetPlayer(string name)

@@ -81,7 +81,7 @@ public static class Commands
         List<char> message = ['\n'];
 
         for(int x = 0; x < GameDirector.instance.PlayerList.Count; x++)
-            message.AddRange($"{Utils.PlayerName(GameDirector.instance.PlayerList[x])}");
+            message.AddRange($"{Utils.PlayerName(GameDirector.instance.PlayerList[x])}\n");
 
         return new string([.. message]);
     }
