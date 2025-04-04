@@ -33,7 +33,6 @@ public static class Commands
 
     public const string ErrTooFewArgs = "Error: Too few arguments";
 
-
     public static string Help(string[] args)
     {
         List<char> message = ['\n'];
