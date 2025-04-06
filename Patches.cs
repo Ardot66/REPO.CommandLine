@@ -15,7 +15,7 @@ public static class Patches
         if(!Commands.CommandList.TryGetValue(messageComponents[0], out CommandInfo command))
             return true;
 
-        int prevIndex = ___chatHistory.IndexOf(messageComponents[0]);
+        int prevIndex = ___chatHistory.IndexOf(___chatMessage);
 
         if(prevIndex != -1)
             ___chatHistory.RemoveAt(prevIndex);

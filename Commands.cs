@@ -23,8 +23,10 @@ public static class Commands
     public static Dictionary<string, CommandInfo> CommandList = new ()
     {
         {"/spawnenemy", new CommandInfo(Spawn, "[name of enemy] [amount] Spawns a number of enemies around the map")},
+        {"/spawnitem", new CommandInfo(SpawnItem, "[name of item] [amount] Spawns a number of items at your position")},
         {"/tpenemy", new CommandInfo(TPEnemy, "[name of enemy] [number of enemies] Teleports enemies directly in front of you")},
         {"/listenemy", new CommandInfo(ListEnemy, "Lists all enemies currently spawned and despawned")},
+        {"/listitem", new CommandInfo(ListItem, "Lists the names of all tool items")},
         {"/godmode", new CommandInfo(Godmode, "[true/false] Sets the player to be invincible or not invincible")},
         {"/sethealth", new CommandInfo(SetHealth, "[player] [health] [max health] Sets the health and max health of the player")},
         {"/help", new CommandInfo(Help, "Prints this information")},
@@ -149,6 +151,54 @@ public static class Commands
         }
 
         return $"Successfully spawned {count} {enemyName}";
+    }
+
+    public static string SpawnItem(string[] args)
+    {
+        if(args.Length < 1)
+            return ErrTooFewArgs;
+
+        List<char> itemName = [.. args[0].ToLower()];
+        
+        itemName[0] = char.ToUpper(itemName[0]);
+        for(int x = 0; x < itemName.Count; x++)
+        {
+            if(itemName[x] == '-')
+            {
+                itemName[x] = ' ';
+
+                if(x + 1 < itemName.Count)
+                    itemName[x + 1] = char.ToUpper(itemName[x + 1]);
+            }
+        }
+
+        Item item = StatsManager.instance.itemDictionary[new string([.. itemName])];
+
+        if(args.Length < 2 || !int.TryParse(args[1], out int spawnCount))
+            spawnCount = 1;
+
+        for(int x = 0; x < spawnCount; x++)
+        {
+            if(SemiFunc.IsMasterClient())
+                PhotonNetwork.InstantiateRoomObject("Items/" + item.prefab.name, PlayerAvatar.instance.transform.position, Quaternion.identity, 0, null);
+            else if(!SemiFunc.IsMultiplayer())
+                GameObject.Instantiate(item.prefab, PlayerAvatar.instance.transform);
+        }
+
+        return $"Sucessfully instantiated {spawnCount} {args[0]}";
+    }
+
+    public static string ListItem(string[] args)
+    {
+        List<char> message = ['\n'];
+
+        foreach(string itemName in StatsManager.instance.itemDictionary.Keys)
+        {
+            message.AddRange(itemName.Replace(' ', '-'));
+            message.Add('\n');
+        }
+
+        return new string([.. message]);
     }
     
     public static string TPEnemy(string[] args)
