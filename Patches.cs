@@ -5,6 +5,8 @@ namespace Ardot.REPO.CommandLine;
 
 public static class Patches
 {    
+    public static bool GameStarted = false;
+
     public static bool MessageSendPrefix(List<string> ___chatHistory, string ___chatMessage, bool _possessed = false)
     {
         string[] messageComponents = ___chatMessage.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -35,5 +37,48 @@ public static class Patches
         Plugin.Logger.LogInfo(result);
 
         return false;
+    }
+
+    public static void StartPostfix()
+    {
+        if(GameStarted)
+            return;
+
+        GameStarted = true;
+
+        string[] commandArgs = Environment.GetCommandLineArgs();
+        int debugIndex = Array.IndexOf(commandArgs, "-d");
+
+        if(debugIndex != -1)
+        {
+            string arg = "";
+            if(commandArgs.Length > debugIndex + 1)
+                arg = commandArgs[debugIndex + 1];
+
+            GameManager.instance.localTest = false;
+            RunManager.instance.ResetProgress();
+            SemiFunc.SaveFileCreate();
+            RunManager.instance.Set("waitToChangeScene", true);
+            MainMenuOpen.instance.NetworkConnect();
+
+            RunManager.ChangeLevelType levelType;
+            if(arg == "Shop")
+            {
+                levelType = RunManager.ChangeLevelType.Shop;
+                SteamManager.instance.LockLobby();
+                DataDirector.instance.RunsPlayedAdd();
+            }
+            else if(arg == "Lobby")
+                levelType = RunManager.ChangeLevelType.LobbyMenu;
+            else
+            {
+                levelType = RunManager.ChangeLevelType.RunLevel;
+                SteamManager.instance.LockLobby();
+                DataDirector.instance.RunsPlayedAdd();
+            }
+
+            RunManager.instance.ChangeLevel(true, false, levelType);
+        }
+
     }
 }

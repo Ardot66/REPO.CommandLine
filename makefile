@@ -15,7 +15,7 @@ $(DLL): Plugin.cs Commands.cs Utils.cs Patches.cs $(NAME).csproj
 	copy $(DLL) Libraries\$(NAME).dll
 
 Debug: 
-	$(REPO_PATH)\REPO.exe
+	$(REPO_PATH)\REPO.exe $(ARGS)
 
 Push:
 	cd /D "$(REPO_PATH)\BepInEx\plugins" &&\
