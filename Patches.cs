@@ -15,7 +15,7 @@ public static class Patches
             messageComponents[x] = messageComponents[x].ToLower();  
 
         if(!Commands.CommandList.TryGetValue(messageComponents[0], out CommandInfo command))
-            return true;
+            return SemiFunc.IsMultiplayer();
 
         int prevIndex = ___chatHistory.IndexOf(___chatMessage);
 
@@ -80,5 +80,17 @@ public static class Patches
             RunManager.instance.ChangeLevel(true, false, levelType);
         }
 
+    }
+
+    public static bool ChatManagerUpdatePrefix(out int __state)
+    {
+        __state = GameManager.instance.gameMode;
+        GameManager.instance.SetGameMode(1);
+        return true;
+    }
+
+    public static void ChatManagerUpdatePostfix(int __state)
+    {
+        GameManager.instance.SetGameMode(__state);
     }
 }
