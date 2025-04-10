@@ -26,10 +26,6 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp"/>
-    <Reference Include="UnityEngine"/>
-    <Reference Include="UnityEngine.CoreModule"/>
-    <Reference Include="PhotonUnityNetworking"/>
-    <Reference Include="PhotonRealtime"/>
+    <Reference Include="../../**/*.dll" Exclude="../../**/CommandLine.dll"/>
   </ItemGroup>
 </Project>

@@ -12,7 +12,7 @@ Compile: $(DLL)
 $(DLL): Plugin.cs Commands.cs Utils.cs Patches.cs $(NAME).csproj
 	dotnet build
 	copy $(DLL) "$(REPO_PATH)\BepInEx\plugins\$(NAME).dll" /B
-	copy $(DLL) Libraries\$(NAME).dll
+	copy $(DLL) ..\Libraries\$(NAME).dll
 
 Debug: 
 	$(REPO_PATH)\REPO.exe $(ARGS)
