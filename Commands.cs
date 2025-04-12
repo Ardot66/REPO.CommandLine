@@ -1,7 +1,3 @@
-using BepInEx;
-using BepInEx.Logging;
-using BepInEx.Unity.Mono;
-
 using Photon.Pun;
 using System;
 using System.Reflection;
