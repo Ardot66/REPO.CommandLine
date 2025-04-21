@@ -7,8 +7,9 @@ using System.Collections.Generic;
 
 namespace Ardot.REPO.CommandLine;
 
-public class CommandInfo(Func<string[], string> command, string summary = "", string help = "")
+public class CommandInfo(string[] commandAliases, Func<string[], string> command, string summary = "", string help = "")
 {
+    public string[] CommandAliases = commandAliases;
     public Func<string[], string> Command = command;
     public string Summary = summary;
     public string Help = help;
@@ -16,17 +17,19 @@ public class CommandInfo(Func<string[], string> command, string summary = "", st
 
 public static class Commands
 {
-    public static Dictionary<string, CommandInfo> CommandList = new ()
+    public static char CommandChar = '/';
+
+    public static List<CommandInfo> CommandList = new ()
     {
-        {"/spawnenemy", new CommandInfo(Spawn, "[name of enemy] [amount] Spawns a number of enemies around the map")},
-        {"/spawnitem", new CommandInfo(SpawnItem, "[name of item] [amount] Spawns a number of items at your position")},
-        {"/tpenemy", new CommandInfo(TPEnemy, "[name of enemy] [number of enemies] Teleports enemies directly in front of you")},
-        {"/listenemy", new CommandInfo(ListEnemy, "Lists all enemies currently spawned and despawned")},
-        {"/listitem", new CommandInfo(ListItem, "Lists the names of all tool items")},
-        {"/godmode", new CommandInfo(Godmode, "[true/false] Sets the player to be invincible or not invincible")},
-        {"/sethealth", new CommandInfo(SetHealth, "[player] [health] [max health] Sets the health and max health of the player")},
-        {"/help", new CommandInfo(Help, "Prints this information")},
-        {"/listplayers", new CommandInfo(ListPlayers, "Lists the names of all players")}
+        { new CommandInfo(["spawnenemy"], Spawn, "[name of enemy] [amount] Spawns a number of enemies around the map")},
+        { new CommandInfo(["spawnitem"], SpawnItem, "[name of item] [amount] Spawns a number of items at your position")},
+        { new CommandInfo(["tpenemy"], TPEnemy, "[name of enemy] [number of enemies] Teleports enemies directly in front of you")},
+        { new CommandInfo(["listenemy"], ListEnemy, "Lists all enemies currently spawned and despawned")},
+        { new CommandInfo(["listitem"], ListItem, "Lists the names of all tool items")},
+        { new CommandInfo(["godmode"], Godmode, "[true/false] Sets the player to be invincible or not invincible")},
+        { new CommandInfo(["sethealth"], SetHealth, "[player] [health] [max health] Sets the health and max health of the player")},
+        { new CommandInfo(["help"], Help, "Prints this information")},
+        { new CommandInfo(["listplayers"], ListPlayers, "Lists the names of all players")}
     };
 
     public const string ErrTooFewArgs = "Error: Too few arguments";
@@ -40,26 +43,29 @@ public static class Commands
             for(int x = 0; x < args.Length; x++)
             {
                 string commandName = args[x];
-                KeyValuePair<string, CommandInfo> bestMatch = default;
-
-                foreach(KeyValuePair<string, CommandInfo> command in CommandList)
-                    if(command.Key.Contains(commandName) && command.Key.Length < bestMatch.Key.Length)
-                        bestMatch = command;
+                CommandInfo command = Utils.FindCommand(args[0]);
                         
-                if(bestMatch.Value == null)
+                if(command == null)
                     message.AddRange($"Could not find command: {commandName}\n");
                 else
-                    PrintCommand(bestMatch.Key, bestMatch.Value, true);
+                    PrintCommand(command, true);
             }
         }
         else
-            foreach(KeyValuePair<string, CommandInfo> command in CommandList)
-                PrintCommand(command.Key, command.Value, false);
+            for(int x = 0; x < CommandList.Count; x++)
+                PrintCommand(CommandList[x], false);
 
-        void PrintCommand(string name, CommandInfo info, bool detailed)
+        void PrintCommand(CommandInfo info, bool detailed)
         {
-            message.AddRange(name);
-            for(int x = 0; x < 15 - name.Length; x++);
+            int aliasesLength = 0;
+            for(int x = 0; x < info.CommandAliases.Length; x++)
+            {
+                string alias = info.CommandAliases[x];
+                message.AddRange(alias);
+                aliasesLength += alias.Length;
+            }
+
+            for(int x = 0; x < 20 - aliasesLength; x++);
                 message.Add(' ');
             message.AddRange(info.Summary);
             message.Add('\n');
@@ -143,7 +149,7 @@ public static class Commands
 
                 FieldInfo enemiesSpawnTargetFI = AccessTools.Field(typeof(LevelGenerator), "EnemiesSpawnTarget");
                 enemiesSpawnTargetFI.SetValue(LevelGenerator.Instance, ((int)enemiesSpawnTargetFI.GetValue(LevelGenerator.Instance)) + 1);
-        }
+            }
         }
 
         return $"Successfully spawned {count} {enemyName}";

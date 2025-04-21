@@ -14,7 +14,12 @@ public static class Patches
         for(int x = 0; x < messageComponents.Length; x++)
             messageComponents[x] = messageComponents[x].ToLower();  
 
-        if(!Commands.CommandList.TryGetValue(messageComponents[0], out CommandInfo command))
+        if(string.IsNullOrEmpty(messageComponents[0]) || messageComponents[0][0] != Commands.CommandChar)
+            return SemiFunc.IsMultiplayer();
+
+        CommandInfo command = Utils.FindCommand(messageComponents[0]);
+
+        if(command == null)
             return SemiFunc.IsMultiplayer();
 
         int prevIndex = ___chatHistory.IndexOf(___chatMessage);
@@ -47,28 +52,25 @@ public static class Patches
         GameStarted = true;
 
         string[] commandArgs = Environment.GetCommandLineArgs();
-        int debugIndex = Array.IndexOf(commandArgs, "-d");
+        string arg;
 
-        if(debugIndex != -1)
+        if(Utils.TryGetArg(commandArgs, 0, out arg, "-d"))
         {
-            string arg = "";
-            if(commandArgs.Length > debugIndex + 1)
-                arg = commandArgs[debugIndex + 1];
+            arg = arg.ToLower();
 
             GameManager.instance.localTest = false;
             RunManager.instance.ResetProgress();
-            SemiFunc.SaveFileCreate();
             RunManager.instance.Set("waitToChangeScene", true);
             MainMenuOpen.instance.NetworkConnect();
 
             RunManager.ChangeLevelType levelType;
-            if(arg == "Shop")
+            if(arg == "shop")
             {
                 levelType = RunManager.ChangeLevelType.Shop;
                 SteamManager.instance.LockLobby();
                 DataDirector.instance.RunsPlayedAdd();
             }
-            else if(arg == "Lobby")
+            else if(arg == "lobby")
                 levelType = RunManager.ChangeLevelType.LobbyMenu;
             else
             {
@@ -80,6 +82,27 @@ public static class Patches
             RunManager.instance.ChangeLevel(true, false, levelType);
         }
 
+        if(Utils.TryGetArg(commandArgs, 0, out arg, "-l"))
+        {
+            if(!int.TryParse(arg, out int levelIndex))
+                levelIndex = 0;
+
+            RunManager.instance.levelsCompleted = levelIndex;
+            StatsManager.instance.runStats["level"] = levelIndex;
+        }
+
+        if(Utils.TryGetArg(commandArgs, 0, out arg, "-lc"))
+        {
+            arg = arg.ToLower();
+
+            RunManager.instance.levelCurrent = arg switch
+            {
+                "manor" => RunManager.instance.levels[0],
+                "academy" => RunManager.instance.levels[1],
+                "station" => RunManager.instance.levels[2],
+                _ => RunManager.instance.levels[0]
+            };
+        }
     }
 
     public static bool ChatManagerUpdatePrefix(out int __state)
